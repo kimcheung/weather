@@ -48,7 +48,7 @@
 
   // await only works in an async function
   // so make this async
-  async function  geoCode(endpoint) {
+  async function geoCode(endpoint) {
     const response = await fetch(endpoint);
     const json = await response.json();
     console.log( json[0].lat, json[0].lon );
@@ -58,11 +58,21 @@
     updateWeather( weatherEndpoint);
   }
 
+  // Why do some api endpoints not allow for fetch promise and json
+  // but we must await the call separately before calling json?
+  // why does the .then fail?
+  async function callStations( stations ) {
+    const response = await fetch(stations);
+    const json = await response.json();
+    console.log( json );
+  }
   function updateWeather( weatherEndpoint ) {
     const weatherPromise = fetch( weatherEndpoint );
     let locationUrl = '';
     let locationData = {};
     let periods = [];
+
+    callStations( `${weatherEndpoint}/stations`);
 
     Promise
       .all( [weatherPromise ])
