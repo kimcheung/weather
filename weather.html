@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Weather App</title>
+
+</head>
+<body>
+  <div>
+    <input type="text" id="geocoding-query" value='New York'>
+    <button id='location-submit'>LookUp</button>
+  </div>
+  <ul class="weather">
+
+  </ul>
+  <div> Location is now <span id='user-loc'> </span></div>
+
+<script>
+  let endpoint = 'https://us1.locationiq.com/v1/search.php?key=c9caf5a073471d';
+  let weatherEndpoint = '';
+  // Initial load with default info
+  updateWeather();
+
+  // Now get user input
+  getUserInput();
+  function getUserInput() {
+    let location = '';
+    let userLocation = document.getElementById('location-submit')
+      .addEventListener('click', () => {
+        location = document.getElementById('geocoding-query')
+        location = location.value;
+        document.getElementById('user-loc').textContent = location;
+
+        location = location.replace( /\s+/g, '_');
+        updateEndpoint(location);
+        location = '';
+      });
+  }
+
+  function updateEndpoint( location ) {
+    endpoint = `${endpoint}&q=${location}&format=json`;
+    console.log( endpoint );
+    geoCode(endpoint);
+
+    // reset the endpoint
+    endpoint = 'https://us1.locationiq.com/v1/search.php?key=c9caf5a073471d';
+  }
+
+  // await only works in an async function
+  // so make this async
+  async function  geoCode(endpoint) {
+    const response = await fetch(endpoint);
+    const json = await response.json();
+    console.log( json[0].lat, json[0].lon );
+
+    weatherEndpoint = `https://api.weather.gov/points/${json[0].lat},${json[0].lon}`;
+
+    updateWeather( weatherEndpoint);
+  }
+
+  function updateWeather( weatherEndpoint ) {
+    const weatherPromise = fetch( 'https://api.weather.gov/points/39.7456,-97.0892' );
+    let locationUrl = '';
+    let locationData = {};
+    let periods = [];
+
+    Promise
+      .all( [weatherPromise ])
+      .then( responses => {
+        locationUrl = responses[0].url;
+        console.log( `this is where to go ${locationUrl}` );
+        getForecast( locationUrl );
+      })
+  }
+
+
+  function getForecast( locationUrl ) {
+    fetch( locationUrl )
+      .then(response => response.json() )
+      .then( data => {
+        console.log( data.properties.forecast )
+        forecastUrl(  data.properties.forecast )
+      })
+
+  }
+
+  function forecastUrl( url ) {
+    fetch(url)
+      .then( responses => responses.json() )
+      .then( data => {
+        periods = data.properties.periods;
+        console.log( periods )
+        writeHtml( periods )
+      })
+  }
+
+  function writeHtml( periods ) {
+    tags = periods.map( (item) => {
+      return `<li> Day: ${item.name}  ${item.temperature}${item.temperatureUnit}</li>`;
+    });
+
+    // Clear out any existing data.
+    document.querySelector('.weather').innerHTML = '';
+
+    tags.map( (tag) => {
+      emptyTag = document.createElement('li');
+      emptyTag.innerHTML = tag;
+
+      document.querySelector('.weather').appendChild( emptyTag );
+    })
+
+  }
+
+
+
+
+
+</script>
+
+</body>
+</html>
