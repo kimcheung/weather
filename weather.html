@@ -17,9 +17,9 @@
 
 <script>
   let endpoint = 'https://us1.locationiq.com/v1/search.php?key=c9caf5a073471d';
-  let weatherEndpoint = '';
+  let weatherEndpoint = 'https://api.weather.gov/points/39.7456,-97.0892';
   // Initial load with default info
-  updateWeather();
+  updateWeather( weatherEndpoint );
 
   // Now get user input
   getUserInput();
@@ -59,7 +59,7 @@
   }
 
   function updateWeather( weatherEndpoint ) {
-    const weatherPromise = fetch( 'https://api.weather.gov/points/39.7456,-97.0892' );
+    const weatherPromise = fetch( weatherEndpoint );
     let locationUrl = '';
     let locationData = {};
     let periods = [];
@@ -73,15 +73,14 @@
       })
   }
 
-
   function getForecast( locationUrl ) {
     fetch( locationUrl )
       .then(response => response.json() )
       .then( data => {
         console.log( data.properties.forecast )
-        forecastUrl(  data.properties.forecast )
+        forecastUrl( data.properties.forecast )
       })
-
+      .catch( (error) => console.log( (error) ));
   }
 
   function forecastUrl( url ) {
@@ -89,7 +88,7 @@
       .then( responses => responses.json() )
       .then( data => {
         periods = data.properties.periods;
-        console.log( periods )
+        // console.log( periods )
         writeHtml( periods )
       })
   }
